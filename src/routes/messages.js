@@ -3,11 +3,9 @@ const router = express.Router();
 const pool = require('../config/db');
 const auth = require('../middleware/auth');
 
-// GET conversations
 router.get('/conversations', auth, async (req, res) => {
     try {
         const userId = req.user.id;
-
         const result = await pool.query(
             `SELECT DISTINCT
                 CASE 
@@ -23,12 +21,7 @@ router.get('/conversations', auth, async (req, res) => {
 
         for (const row of result.rows) {
             const otherId = row.other_user_id;
-
-            const userResult = await pool.query(
-                'SELECT id, name, user_type FROM users WHERE id = $1',
-                [otherId]
-            );
-
+            const userResult = await pool.query('SELECT id, name, user_type FROM users WHERE id = $1', [otherId]);
             if (userResult.rows.length === 0) continue;
             const otherUser = userResult.rows[0];
 
@@ -63,14 +56,11 @@ router.get('/conversations', auth, async (req, res) => {
         });
 
         res.json({ conversations });
-
     } catch (error) {
-        console.error('Get conversations error:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
-// GET messages with one user
 router.get('/:userId', auth, async (req, res) => {
     try {
         const myId = req.user.id;
@@ -93,13 +83,11 @@ router.get('/:userId', auth, async (req, res) => {
         );
 
         res.json({ messages: result.rows });
-
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// SEND message
 router.post('/', auth, async (req, res) => {
     try {
         const senderId = req.user.id;
@@ -116,11 +104,7 @@ router.post('/', auth, async (req, res) => {
             [senderId, receiver_id, house_id || null, message.trim()]
         );
 
-        res.status(201).json({
-            message: '✅ Ujumbe umetumwa',
-            data: result.rows[0]
-        });
-
+        res.status(201).json({ message: '✅ Ujumbe umetumwa', data: result.rows[0] });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

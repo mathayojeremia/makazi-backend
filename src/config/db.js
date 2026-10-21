@@ -4,13 +4,11 @@ require('dotenv').config();
 let pool;
 
 if (process.env.DATABASE_URL) {
-    // Render / Production
     pool = new Pool({
         connectionString: process.env.DATABASE_URL,
         ssl: { rejectUnauthorized: false }
     });
 } else {
-    // Local development
     pool = new Pool({
         host: process.env.DB_HOST || 'localhost',
         port: parseInt(process.env.DB_PORT) || 5432,
