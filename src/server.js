@@ -6,26 +6,41 @@ const pool = require('./config/db');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// CORS — Ruhusu frontend yako
+// ===== CORS CONFIG — RUHUSU NETLIFY =====
+const allowedOrigins = [
+    'https://makazi-t.netlify.app',
+    'https://mellifluous-biscuit-d4eddf.netlify.app',
+    'http://127.0.0.1:5500',
+    'http://localhost:5500',
+    'http://127.0.0.1:3000',
+    'http://localhost:3000'
+];
+
 app.use(cors({
-    origin: [
-        'http://127.0.0.1:5500',
-        'http://localhost:5500',
-        'http://127.0.0.1:3000',
-        'http://localhost:3000',
-        'https://makazi-frontend.netlify.app',
-        '*'  // Kwa majaribio — baadaye weka URL maalum
-    ],
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.log('❌ CORS blocked:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    maxAge: 86400
 }));
 
-// Middleware
+// ===== PREFLIGHT HANDLER — MUHIMU! =====
+app.options('*', cors());
+
+// ===== BODY PARSER =====
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Routes
+// ===== ROUTES =====
 const authRoutes = require('./routes/auth');
 const houseRoutes = require('./routes/houses');
 const userRoutes = require('./routes/users');
@@ -36,7 +51,7 @@ app.use('/api/houses', houseRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
 
-// Test database
+// ===== TEST DATABASE =====
 app.get('/api/test-db', async (req, res) => {
     try {
         const result = await pool.query('SELECT NOW()');
@@ -52,7 +67,7 @@ app.get('/api/test-db', async (req, res) => {
     }
 });
 
-// Root
+// ===== ROOT =====
 app.get('/', (req, res) => {
     res.json({
         message: '🏠 MAKAZI TZ API',
@@ -68,12 +83,12 @@ app.get('/', (req, res) => {
     });
 });
 
-// Health check
+// ===== HEALTH CHECK =====
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Server inafanya kazi' });
 });
 
-// 404 handler
+// ===== 404 HANDLER =====
 app.use((req, res) => {
     res.status(404).json({
         error: 'Route haipo',
@@ -81,13 +96,16 @@ app.use((req, res) => {
     });
 });
 
-// Error handler
+// ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
     console.error(err.stack);
+    if (err.message === 'Not allowed by CORS') {
+        return res.status(403).json({ error: 'CORS: Origin hairuhusiwi' });
+    }
     res.status(500).json({ error: 'Kuna kosa kwenye server' });
 });
 
-// Start server — RENDER INAHITAJI 0.0.0.0
+// ===== START SERVER =====
 app.listen(PORT, '0.0.0.0', () => {
     console.log('');
     console.log('🚀 ================================');
@@ -100,5 +118,8 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log('   • /api/houses');
     console.log('   • /api/users');
     console.log('   • /api/messages');
+    console.log('');
+    console.log('✅ CORS imeruhusu:');
+    allowedOrigins.forEach(o => console.log('   • ' + o));
     console.log('');
 });

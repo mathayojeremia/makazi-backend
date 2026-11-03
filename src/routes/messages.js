@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const auth = require('../middleware/auth');
 
+// ===== GET CONVERSATIONS =====
 router.get('/conversations', auth, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -61,6 +62,7 @@ router.get('/conversations', auth, async (req, res) => {
     }
 });
 
+// ===== GET MESSAGES WITH USER =====
 router.get('/:userId', auth, async (req, res) => {
     try {
         const myId = req.user.id;
@@ -88,6 +90,7 @@ router.get('/:userId', auth, async (req, res) => {
     }
 });
 
+// ===== SEND MESSAGE =====
 router.post('/', auth, async (req, res) => {
     try {
         const senderId = req.user.id;

@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const auth = require('../middleware/auth');
 
+// ===== GET ALL HOUSES =====
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query(
@@ -17,6 +18,7 @@ router.get('/', async (req, res) => {
     }
 });
 
+// ===== GET ONE HOUSE =====
 router.get('/:id', async (req, res) => {
     try {
         const result = await pool.query(
@@ -34,6 +36,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// ===== CREATE HOUSE =====
 router.post('/', auth, async (req, res) => {
     try {
         const { title, description, area, city, price, bedrooms, bathrooms, parking, size, amenities, images } = req.body;
@@ -53,6 +56,7 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
+// ===== UPDATE HOUSE =====
 router.put('/:id', auth, async (req, res) => {
     try {
         const { id } = req.params;
@@ -84,6 +88,7 @@ router.put('/:id', auth, async (req, res) => {
     }
 });
 
+// ===== DELETE HOUSE =====
 router.delete('/:id', auth, async (req, res) => {
     try {
         const { id } = req.params;

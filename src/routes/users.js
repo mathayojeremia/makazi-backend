@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const auth = require('../middleware/auth');
 
+// ===== GET ALL USERS =====
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query(
@@ -14,6 +15,7 @@ router.get('/', async (req, res) => {
     }
 });
 
+// ===== GET CURRENT USER =====
 router.get('/me', auth, async (req, res) => {
     try {
         const result = await pool.query(
@@ -27,6 +29,7 @@ router.get('/me', auth, async (req, res) => {
     }
 });
 
+// ===== GET USER BY ID =====
 router.get('/:id', async (req, res) => {
     try {
         const result = await pool.query(
