@@ -6,10 +6,26 @@ const pool = require('./config/db');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-app.use(cors());
+// CORS — Ruhusu frontend yako
+app.use(cors({
+    origin: [
+        'http://127.0.0.1:5500',
+        'http://localhost:5500',
+        'http://127.0.0.1:3000',
+        'http://localhost:3000',
+        'https://makazi-frontend.netlify.app',
+        '*'  // Kwa majaribio — baadaye weka URL maalum
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// Routes
 const authRoutes = require('./routes/auth');
 const houseRoutes = require('./routes/houses');
 const userRoutes = require('./routes/users');
@@ -20,15 +36,23 @@ app.use('/api/houses', houseRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
 
+// Test database
 app.get('/api/test-db', async (req, res) => {
     try {
         const result = await pool.query('SELECT NOW()');
-        res.json({ message: '✅ Database inafanya kazi', time: result.rows[0].now });
+        res.json({
+            message: '✅ Database inafanya kazi',
+            time: result.rows[0].now
+        });
     } catch (error) {
-        res.status(500).json({ message: '❌ Database haifanyi kazi', error: error.message });
+        res.status(500).json({
+            message: '❌ Database haifanyi kazi',
+            error: error.message
+        });
     }
 });
 
+// Root
 app.get('/', (req, res) => {
     res.json({
         message: '🏠 MAKAZI TZ API',
@@ -44,19 +68,26 @@ app.get('/', (req, res) => {
     });
 });
 
+// Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Server inafanya kazi' });
 });
 
+// 404 handler
 app.use((req, res) => {
-    res.status(404).json({ error: 'Route haipo', path: req.originalUrl });
+    res.status(404).json({
+        error: 'Route haipo',
+        path: req.originalUrl
+    });
 });
 
+// Error handler
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ error: 'Kuna kosa kwenye server' });
 });
 
+// Start server — RENDER INAHITAJI 0.0.0.0
 app.listen(PORT, '0.0.0.0', () => {
     console.log('');
     console.log('🚀 ================================');
